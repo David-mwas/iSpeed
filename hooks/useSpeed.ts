@@ -10,7 +10,7 @@ export function useSpeed() {
 
     const startTracking = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      console.log("Location permission status:", status);
+      // console.log("Location permission status:", status);
       if (status !== "granted") return;
 
       subscriber = await Location.watchPositionAsync(
@@ -20,7 +20,7 @@ export function useSpeed() {
           distanceInterval: 0,
         },
         (location) => {
-          console.log("Location update:", location);
+          // console.log("Location update:", location);
           const currentSpeed = location.coords.speed ?? 0;
           setSpeed(currentSpeed >= 0 ? currentSpeed : 0);
         }

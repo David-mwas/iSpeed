@@ -24,16 +24,25 @@ import Svg, {
 } from "react-native-svg";
 import { useAppContext } from "../../context/AppContext";
 import { useSpeed } from "../../hooks/useSpeed";
-import { saveSession } from "../../utils/helpers";
+// import { saveSession } from "../../utils/helpers";
 
 export default function HomeScreen() {
-  const { isTracking, setIsTracking, speed, setSpeed } = useAppContext();
+  const {
+    isTracking,
+    setIsTracking,
+    speed,
+    setSpeed,
+    addSession,
+    clearHistory,
+    topSpeed,
+    setTopSpeed,
+  } = useAppContext();
   const [unit, setUnit] = useState<"kmh" | "ms">("kmh");
   const [distance, setDistance] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [lastSpeed, setLastSpeed] = useState(0);
-  const [topSpeed, setTopSpeed] = useState(0); // NEW
+  // const [topSpeed, setTopSpeed] = useState(0); // NEW
 
   useSpeed();
 
@@ -71,7 +80,7 @@ export default function HomeScreen() {
       setTopSpeed(speed);
       AsyncStorage.setItem("topSpeed", String(speed));
     }
-  }, [speed]);
+  }, [speed, topSpeed]);
 
   const safeSpeed =
     typeof speed === "number" && !isNaN(speed) && speed >= 0 ? speed : 0;
@@ -79,13 +88,7 @@ export default function HomeScreen() {
   const convertedSpeed = isNaN(convertedSpeedRaw) ? 0 : convertedSpeedRaw;
   const convertedTopSpeed = unit === "kmh" ? topSpeed : topSpeed / 3.6;
 
-  const deviationPercent =
-    convertedTopSpeed > 0
-      ? (
-          ((convertedTopSpeed - convertedSpeed) / convertedTopSpeed) *
-          100
-        ).toFixed(1)
-      : "0";
+
 
   const speedAnim = useSharedValue(0);
   useEffect(() => {
@@ -102,7 +105,7 @@ export default function HomeScreen() {
   const toggleTracking = async () => {
     if (isTracking) {
       setIsTracking(false);
-      await saveSession({
+      await addSession({
         date: new Date().toISOString(),
         distance,
         elapsedTime,
@@ -125,6 +128,7 @@ export default function HomeScreen() {
     setLastSpeed(0);
     //clear top speed as well
     await AsyncStorage.removeItem("topSpeed");
+    await clearHistory();
     setTopSpeed(0);
   };
 
@@ -251,7 +255,9 @@ export default function HomeScreen() {
         <Text className="text-sm">km/h</Text>
         <Switch
           value={unit === "ms"}
-          onValueChange={() => setUnit(unit === "kmh" ? "ms" : "kmh")}
+          onValueChange={() => {
+            setUnit(unit === "kmh" ? "ms" : "kmh");
+          }}
         />
         <Text className="text-sm">m/s</Text>
       </View>
